@@ -66,7 +66,7 @@ class Game:
 
     def draw(self):
         self.clock.tick(FPS)
-        self.screen.fill((255, 255, 255))
+        self.screen.fill((0, 0, 0))
         self.draw_background()
         self.player.draw(self.screen) #! Dinausor class draw
         self.obstacle_manager.draw(self.screen)#! ObstacleManager class draw
@@ -76,7 +76,7 @@ class Game:
 
     def text_menu(self, half_screen_width, half_screen_height):
             font = pygame.font.SysFont(FONT_STYLE, 30)
-            text = font.render("Press any key to start", True, (0, 0, 0))
+            text = font.render("Press any key to start", True, (255, 255, 255))
             text_rect = text.get_rect()
             text_rect.center = (half_screen_width + 250, half_screen_height - 250)
             self.screen.blit(text, text_rect)
@@ -89,9 +89,9 @@ class Game:
 
     def text_scores(self,half_screen_width, half_screen_height):
         font = pygame.font.SysFont(FONT_STYLE, 30)
-        text = [font.render(f"Your Score: {self.score}", True, (0, 0, 0)),
-        font.render(f"Your high score: {self.high_score}", True, (0, 0, 0)), 
-        font.render(f"Your death count: {self.death_count}", True, (0, 0, 0))]
+        text = [font.render(f"Your Score: {self.score}", True, (255, 255, 255)),
+        font.render(f"Your high score: {self.high_score}", True, (255, 255, 255)), 
+        font.render(f"Your death count: {self.death_count}", True, (255, 255, 255))]
         index = 0
         for result in text:
                 index += 30
@@ -100,7 +100,7 @@ class Game:
                 self.screen.blit(result, (result_rect.x + 250, result_rect.y -250  + index))
 
     def show_menu(self):
-        self.screen.fill((255, 255, 255))
+        self.screen.fill((0, 0, 0))
         half_screen_height = SCREEN_HEIGHT // 2
         half_screen_width = SCREEN_WIDTH // 2
         if self.death_count == 0:
