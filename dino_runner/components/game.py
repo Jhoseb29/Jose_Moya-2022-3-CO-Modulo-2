@@ -1,9 +1,11 @@
 import pygame
 
-from dino_runner.utils.constants import BG, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS, FONT_STYLE, GAME_OVER
+from dino_runner.utils.constants import BG, ICON, SCREEN_HEIGHT, SCREEN_WIDTH, TITLE, FPS, FONT_STYLE, GAME_OVER, DEFAULT_TYPE
 
 from dino_runner.components.dinosaur import Dinosaur 
 from dino_runner.components.obstacles.obstacle_manager import ObstacleManager
+from dino_runner.components.message import draw_message
+from dino_runner.components.power_ups.power_up_manager import PowerUpManager
 
 class Game:
     def __init__(self):
@@ -20,6 +22,7 @@ class Game:
         self.y_pos_bg = 380
         self.player = Dinosaur()
         self.obstacle_manager = ObstacleManager()
+        self.power_up_manager = PowerUpManager()
         self.running = False
         self.score = 0
         self.death_count = 0
@@ -40,18 +43,21 @@ class Game:
 
     def run(self):
         # Game loop: events - update - draw
-        self.reset_obstacles()
-        self.playing = True
+        self.reset_all()
+        
         while self.playing:
             self.events()
             self.update()
             self.draw()
         
 
-    def reset_obstacles(self):
+    def reset_all(self):
+        self.power_up_manager.reset_power_ups()
         self.obstacle_manager.reset()
-        self.score = 0
+        self.playing = True
         self.game_speed = 20
+        self.score = 0
+        
 
     def events(self):
         for event in pygame.event.get():
@@ -62,7 +68,11 @@ class Game:
         user_input = pygame.key.get_pressed()
         self.player.update(user_input)
         self.obstacle_manager.update(self)
+        self.power_up_manager.update(self)
         self.update_score()
+        
+        
+
 
     def draw(self):
         self.clock.tick(FPS)
@@ -70,16 +80,13 @@ class Game:
         self.draw_background()
         self.player.draw(self.screen) #! Dinausor class draw
         self.obstacle_manager.draw(self.screen)#! ObstacleManager class draw
+        self.power_up_manager.draw(self.screen) #! PowerUpManager class draw
+        self.draw_power_up_time()
         self.draw_score()
         pygame.display.update()
         pygame.display.flip()
 
-    def text_menu(self, half_screen_width, half_screen_height):
-            font = pygame.font.SysFont(FONT_STYLE, 30)
-            text = font.render("Press any key to start", True, (255, 255, 255))
-            text_rect = text.get_rect()
-            text_rect.center = (half_screen_width + 250, half_screen_height - 250)
-            self.screen.blit(text, text_rect)
+    
 
     def image_game_over(self, half_screen_width,  half_screen_height):
             self.screen.blit(self.game_over_image, (half_screen_width + 150, half_screen_height -350))
@@ -87,27 +94,19 @@ class Game:
             if self.replay_button.collidepoint(self.mouse_pos):
                 pass
 
-    def text_scores(self,half_screen_width, half_screen_height):
-        font = pygame.font.SysFont(FONT_STYLE, 30)
-        text = [font.render(f"Your Score: {self.score}", True, (255, 255, 255)),
-        font.render(f"Your high score: {self.high_score}", True, (255, 255, 255)), 
-        font.render(f"Your death count: {self.death_count}", True, (255, 255, 255))]
-        index = 0
-        for result in text:
-                index += 30
-                result_rect = result.get_rect()
-                result_rect.center = (half_screen_width, half_screen_height)
-                self.screen.blit(result, (result_rect.x + 250, result_rect.y -250  + index))
 
     def show_menu(self):
         self.screen.fill((0, 0, 0))
         half_screen_height = SCREEN_HEIGHT // 2
         half_screen_width = SCREEN_WIDTH // 2
         if self.death_count == 0:
-            self.text_menu(half_screen_height, half_screen_width)
+            draw_message("press any key to start ...", self.screen)
         else:
             self.image_game_over(half_screen_height, half_screen_width)
-            self.text_scores(half_screen_height, half_screen_width)
+            draw_message("press any key to restart ...", self.screen)
+            draw_message(f"Your Score: {self.score}",self.screen,pos_y_center = half_screen_height + 30)
+            draw_message(f"Highest score: {self.high_score}",self.screen,pos_y_center = half_screen_height + 60)
+            draw_message(f"total deaths: {self.death_count}",self.screen,pos_y_center = half_screen_height + 90)
             
 
         pygame.display.update()
@@ -129,10 +128,19 @@ class Game:
     
     def draw_score(self):
         font = pygame.font.SysFont(FONT_STYLE, 20)
-        text = font.render("Score: " + str(self.score), True, (0, 0, 0))
+        text = font.render("Score: " + str(self.score), True, (255, 255, 255))
         text_rect = text.get_rect()
         text_rect.center = (1000, 50)
         self.screen.blit(text, text_rect)
+
+    def draw_power_up_time(self):
+        if self.player.has_power_up:
+            time_to_show = round((self.player.power_time_up - pygame.time.get_ticks())/1000, 2)
+            if time_to_show >= 0:
+                draw_message(f'{self.player.type} enable for {time_to_show} seconds', self.screen, font_color = "violet", font_size=18,pos_x_center=508,pos_y_center=50)
+            else:
+                self.player.has_power_up = False
+                self.player.type = DEFAULT_TYPE
 
     def update_score(self):
         self.score += 1
