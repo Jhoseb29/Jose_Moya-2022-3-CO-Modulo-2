@@ -22,13 +22,13 @@ class ObstacleManager():
         for obstacle in self.obstacles:
             obstacle.update(game.game_speed, self.obstacles)
             if game.player.rect.colliderect(obstacle.rect):
-                pygame.time.delay(1000)
                 if game.player.type != SHIELD_TYPE:
+                    pygame.time.delay(1000)
                     game.death_count += 1
                     game.playing = False
-                break
-            else:
-                self.obstacles.pop()
+                    break
+                else:
+                    self.obstacles.pop()
     
 
     def draw(self, screen):
